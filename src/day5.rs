@@ -16,18 +16,6 @@ pub struct Almanac {
     humidity_to_location: Vec<Mapping>,
 }
 
-impl Almanac {
-    fn sort_maps(&mut self) {
-        self.seeds_to_soil.sort_by_key(|&(_, src, _)| src);
-        self.soil_to_fertilizer.sort_by_key(|&(_, src, _)| src);
-        self.fertilizer_to_water.sort_by_key(|&(_, src, _)| src);
-        self.water_to_light.sort_by_key(|&(_, src, _)| src);
-        self.light_to_temperature.sort_by_key(|&(_, src, _)| src);
-        self.temperature_to_humidity.sort_by_key(|&(_, src, _)| src);
-        self.humidity_to_location.sort_by_key(|&(_, src, _)| src);
-    }
-}
-
 #[aoc_generator(day5)]
 pub fn parse_input(input: &str) -> Almanac {
     let re_seeds = Regex::new(r"seeds:\s(?<seeds>(?:\d+\s*)*)").unwrap();
@@ -92,7 +80,7 @@ pub fn solve_part1(input: &Almanac) -> i64 {
 }
 
 #[aoc(day5, part2)]
-pub fn bruteforce_part2(input: &Almanac) -> i64 {
+pub fn solve_part2(input: &Almanac) -> i64 {
     let maps = &[
         &input.seeds_to_soil,
         &input.soil_to_fertilizer,
@@ -124,6 +112,15 @@ pub fn bruteforce_part2(input: &Almanac) -> i64 {
 
     return min_location;
 
+}
+
+fn follow_maps(maps: &[&Vec<Mapping>], src: i64) -> i64 {
+    let mut dst = src;
+    for m in maps {
+        dst = map_value(m, dst);
+    }
+
+    return dst;
 }
 
 fn map_value(mapping: &Vec<Mapping>, key: i64) -> i64 {
@@ -165,36 +162,7 @@ mod tests {
 
     #[test]
     fn solve_part2_example() {
-        assert_eq!(bruteforce_part2(&parse_input(EXAMPLE_INPUT)), 46);
-    }
-
-    #[test]
-    fn test_min_locations() {
-        // no mappings
-        assert_eq!(min_locations(&[&vec![]], 0, 5, 5), 5);
-
-        // mapping contained in range
-        assert_eq!(min_locations(&[&vec![(0, 20, 5)]], 0, 20, 15), 0);
-
-        assert_eq!(min_locations(&[&vec![(0, 20, 20)]], 0, 20, 15), 0);
-
-        // range contained in mapping
-        assert_eq!(min_locations(&[&vec![(10, 0, 10)]], 0, 5, 5), 15);
-
-        // mapping just before range
-        assert_eq!(min_locations(&[&vec![(10, 0, 5)]], 0, 5, 5), 5);
-
-        // mapping just after range
-        assert_eq!(min_locations(&[&vec![(0, 10, 5)]], 0, 5, 5), 5);
-
-        // multiple mappings in range
-        assert_eq!(
-            min_locations(&[&vec![(20, 12, 5), (0, 17, 3)]], 0, 10, 20),
-            0
-        );
-
-        // multiple maps
-        //        assert_eq!(min_locations(&[&vec![(10, 10, 10)], ], map_index, start, length))
+        assert_eq!(solve_part2(&parse_input(EXAMPLE_INPUT)), 46);
     }
 
     #[test]
