@@ -1,11 +1,11 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 use regex::Regex;
 
-type Mapping = (usize, usize, usize);
+type Mapping = (i64, i64, i64);
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Almanac {
-    seeds: Vec<usize>,
+    seeds: Vec<i64>,
 
     seeds_to_soil: Vec<Mapping>,
     soil_to_fertilizer: Vec<Mapping>,
@@ -35,7 +35,7 @@ pub fn parse_input(input: &str) -> Almanac {
 
     let mut entries = input.split("\n\n");
 
-    let seeds: Vec<usize> = re_seeds.captures(entries.next().unwrap()).unwrap()["seeds"]
+    let seeds: Vec<i64> = re_seeds.captures(entries.next().unwrap()).unwrap()["seeds"]
         .split_whitespace()
         .map(|s| s.parse().unwrap())
         .collect();
@@ -71,7 +71,7 @@ pub fn parse_input(input: &str) -> Almanac {
 }
 
 #[aoc(day5, part1)]
-pub fn solve_part1(input: &Almanac) -> usize {
+pub fn solve_part1(input: &Almanac) -> i64 {
     let maps = &[
         &input.seeds_to_soil,
         &input.soil_to_fertilizer,
@@ -82,7 +82,7 @@ pub fn solve_part1(input: &Almanac) -> usize {
         &input.humidity_to_location,
     ];
 
-    let mut locations: Vec<usize> = vec![];
+    let mut locations: Vec<i64> = vec![];
 
     for seed in &input.seeds {
         locations.push(follow_maps(maps, *seed));
@@ -92,10 +92,7 @@ pub fn solve_part1(input: &Almanac) -> usize {
 }
 
 #[aoc(day5, part2)]
-pub fn solve_part2(input_ref: &Almanac) -> usize {
-    let mut input = input_ref.clone();
-    input.sort_maps();
-
+pub fn bruteforce_part2(input: &Almanac) -> i64 {
     let maps = &[
         &input.seeds_to_soil,
         &input.soil_to_fertilizer,
@@ -106,72 +103,30 @@ pub fn solve_part2(input_ref: &Almanac) -> usize {
         &input.humidity_to_location,
     ];
 
-    return input
-        .seeds
-        .chunks_exact(2)
-        .map(|i| min_locations(maps, 0, i[0], i[1]))
-        .min()
-        .unwrap();
-}
+    let mut min_location = i64::MAX;
 
-fn follow_maps(maps: &[&Vec<Mapping>], src: usize) -> usize {
-    let mut dst = src;
-    for m in maps {
-        dst = map_value(m, dst);
-    }
 
-    return dst;
-}
+    let total_seeds: i64 = input.seeds.chunks_exact(2).map(|s| s[1]).sum();
+    let mut processed_seeds = 0;
 
-fn min_locations(maps: &[&Vec<Mapping>], map_index: usize, start: usize, length: usize) -> usize {
-    if map_index >= maps.len() {
-        // base case
-        return start;
-    }
 
-    let first_range = maps[map_index]
-        .iter()
-        .filter(|&&(_, src, len)| start < src + len && start+length > src)
-        .last();
-
-    match first_range {
-        Some(&(dst, src, len)) => {
-            if src <= start {
-                // first range contains start
-                
-                if start + length <= src + len {
-                    // whole range contained
-                    min_locations(maps, map_index + 1, dst + (start - src), length)
-                } else {
-                    // part of the range contained
-                    min_locations(
-                        maps,
-                        map_index + 1,
-                        dst + (start - src),
-                        (src + len) - start,
-                    )
-                    .min(min_locations(
-                        maps,
-                        map_index,
-                        src + len,
-                        (start + length) - (src + len),
-                    ))
-                }
-            } else {
-                // start not contained in range
-                min_locations(maps, map_index + 1, start, src - start).min(min_locations(
-                    maps,
-                    map_index,
-                    src,
-                    length - (src - start),
-                ))
+    println!("Total seeds: {}", total_seeds);
+    for seed in input.seeds.chunks_exact(2) {
+        for i in seed[0]..seed[0]+seed[1] {
+            min_location = min_location.min(follow_maps(maps, i));
+            if processed_seeds % 100_000_000 == 0 {
+                println!("Progress: {:.0}%", (processed_seeds as f64 / total_seeds as f64)*100.0);
             }
+
+            processed_seeds += 1;
         }
-        None => min_locations(maps, map_index + 1, start, length), // no ranges after start
     }
+
+    return min_location;
+
 }
 
-fn map_value(mapping: &Vec<Mapping>, key: usize) -> usize {
+fn map_value(mapping: &Vec<Mapping>, key: i64) -> i64 {
     for &(dst, src, len) in mapping {
         if src <= key && key < src + len {
             return dst + (key - src);
@@ -210,28 +165,66 @@ mod tests {
 
     #[test]
     fn solve_part2_example() {
-        assert_eq!(solve_part2(&parse_input(EXAMPLE_INPUT)), 46);
+        assert_eq!(bruteforce_part2(&parse_input(EXAMPLE_INPUT)), 46);
     }
 
     #[test]
     fn test_min_locations() {
-        
         // no mappings
         assert_eq!(min_locations(&[&vec![]], 0, 5, 5), 5);
-        
+
+        // mapping contained in range
+        assert_eq!(min_locations(&[&vec![(0, 20, 5)]], 0, 20, 15), 0);
+
+        assert_eq!(min_locations(&[&vec![(0, 20, 20)]], 0, 20, 15), 0);
+
         // range contained in mapping
         assert_eq!(min_locations(&[&vec![(10, 0, 10)]], 0, 5, 5), 15);
-        
+
         // mapping just before range
         assert_eq!(min_locations(&[&vec![(10, 0, 5)]], 0, 5, 5), 5);
-        
+
         // mapping just after range
         assert_eq!(min_locations(&[&vec![(0, 10, 5)]], 0, 5, 5), 5);
-        
+
         // multiple mappings in range
-        assert_eq!(min_locations(&[&vec![(20, 12, 5), (0, 17, 3)]], 0, 10, 20), 0);
-        
+        assert_eq!(
+            min_locations(&[&vec![(20, 12, 5), (0, 17, 3)]], 0, 10, 20),
+            0
+        );
+
         // multiple maps
-//        assert_eq!(min_locations(&[&vec![(10, 10, 10)], ], map_index, start, length))
+        //        assert_eq!(min_locations(&[&vec![(10, 10, 10)], ], map_index, start, length))
+    }
+
+    #[test]
+    fn solve_part1_with_part2() {
+        const INPUT: &str = include_str!("../input/2023/day5.txt");
+        let mut input = parse_input(INPUT);
+
+        input.seeds = input.seeds.iter().map(|&s| [s, 1]).flatten().collect();
+
+        assert_eq!(solve_part2(&input), 178159714)
+
+
+    }
+
+
+    #[test]
+    fn print_locations() {
+        const INPUT: &str = include_str!("../input/2023/day5.txt");
+        let input = parse_input(INPUT);
+
+        let mut counter = 0;
+
+        for i in input.seeds.chunks_exact(2) {
+            counter += i[1];
+        }
+
+        println!("{}", counter);
+
+
+
+
     }
 }
