@@ -1,6 +1,5 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 use itertools::Itertools;
-use std::cmp::Ordering;
 
 #[derive(PartialEq, Eq, Hash, PartialOrd, Ord, Debug, Clone)]
 enum Card {
@@ -55,7 +54,7 @@ enum CardsType {
     HighCard,
 }
 
-#[derive(Eq, Debug, Clone)]
+#[derive(Eq, PartialEq, Debug, Clone)]
 pub struct Hand {
     cards: Vec<Card>,
     bid: usize,
@@ -93,27 +92,7 @@ impl TryFrom<&str> for Hand {
         })
     }
 }
-impl Ord for Hand {
-    fn cmp(&self, other: &Self) -> Ordering {
-        match self.get_type().cmp(&other.get_type()) {
-            Ordering::Less => Ordering::Less,
-            Ordering::Equal => self.cards.cmp(&other.cards),
-            Ordering::Greater => Ordering::Greater,
-        }
-    }
-}
 
-impl PartialOrd for Hand {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl PartialEq for Hand {
-    fn eq(&self, other: &Self) -> bool {
-        self.cards == other.cards
-    }
-}
 
 #[aoc_generator(day7, part1)]
 pub fn parse_input_part1(input: &str) -> Vec<Hand> {
@@ -133,20 +112,19 @@ pub fn parse_input_part2(input: &str) -> Vec<Hand> {
 
 #[aoc(day7, part1)]
 pub fn solve_part1(input: &[Hand]) -> usize {
-    input
-        .iter()
-        .sorted()
-        .rev()
-        .enumerate()
-        .map(|(i, hand)| (i + 1) * hand.bid)
-        .sum()
+    solve(input)
 }
 
 #[aoc(day7, part2)]
 pub fn solve_part2(input: &[Hand]) -> usize {
+    solve(input)
+}
+
+fn solve(input: &[Hand]) -> usize {
     input
         .iter()
-        .sorted()
+        .sorted_by_key(|hand| &hand.cards)
+        .sorted_by_cached_key(|hand| hand.get_type()) // Cache getting types of hands
         .rev()
         .enumerate()
         .map(|(i, hand)| (i + 1) * hand.bid)
