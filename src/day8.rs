@@ -1,7 +1,7 @@
 use aoc_runner_derive::{aoc, aoc_generator};
+use itertools::Itertools;
 use std::collections::HashMap;
 use std::ops::ControlFlow;
-use itertools::Itertools;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Instruction {
@@ -37,18 +37,23 @@ pub fn parse_input(input: &str) -> (Vec<Instruction>, HashMap<String, [String; 2
 pub fn solve_part1(input: &(Vec<Instruction>, HashMap<String, [String; 2]>)) -> u32 {
     let (instructions, map) = input;
 
-    let starting_node = "AAA";
+    const STARTING_NODE: &str = "AAA";
+    const ENDING_NODE: &str = "ZZZ";
 
-    let cf = instructions
-        .iter()
-        .cycle()
-        .try_fold(
-            (starting_node, 0),
-            |(node, steps), &instruction| match node {
-                "ZZZ" => ControlFlow::Break(steps),
-                _ => ControlFlow::Continue((map.get(node).unwrap()[instruction as usize].as_str(), steps + 1)),
-            },
-        );
+    let cf =
+        instructions
+            .iter()
+            .cycle()
+            .try_fold(
+                (STARTING_NODE, 0),
+                |(node, steps), &instruction| match node {
+                    ENDING_NODE => ControlFlow::Break(steps),
+                    _ => ControlFlow::Continue((
+                        map.get(node).unwrap()[instruction as usize].as_str(),
+                        steps + 1,
+                    )),
+                },
+            );
 
     match cf {
         ControlFlow::Continue(_) => panic!("Failed to reach end"),
@@ -57,32 +62,62 @@ pub fn solve_part1(input: &(Vec<Instruction>, HashMap<String, [String; 2]>)) -> 
 }
 
 #[aoc(day8, part2)]
-pub fn solve_part2(input: &(Vec<Instruction>, HashMap<String, [String; 2]>)) -> u32 {
+pub fn solve_part2(input: &(Vec<Instruction>, HashMap<String, [String; 2]>)) -> usize {
     let (instructions, map) = input;
 
-    let starting_nodes = map.keys().filter(|node| node.ends_with("A")).map(|node| node.as_str()).collect_vec();
+    let starting_nodes = map
+        .keys()
+        .filter(|node| node.ends_with("A"))
+        .map(|node| node.as_str())
+        .collect_vec();
 
-
-    let cf = instructions
+    let results = starting_nodes
         .iter()
-        .cycle()
-        .try_fold(
-            (starting_nodes, 0),
-            |(nodes, steps), &instruction| {
-                match nodes.iter().filter(|node| node.ends_with("Z")).count() > 2 {
-                    true => ControlFlow::Break(steps),
-                    false => ControlFlow::Continue((
-                        nodes.into_iter().map(|node| map.get(node).unwrap()[instruction as usize].as_str()).collect(),
-                        steps + 1
-                    ))
-                }
-            },
-        );
+        .map(|node| {
+            let mut current_node = *node;
 
-    match cf {
-        ControlFlow::Continue(_) => panic!("Failed to reach end"),
-        ControlFlow::Break(res) => res,
+            instructions
+                .iter()
+                .cycle()
+                .enumerate()
+                .find_map(|(index, instruction)| {
+                    let options = map
+                        .get(current_node)
+                        .expect("always exists at a valid node");
+                    let next_node = match instruction {
+                        Instruction::Left => options[0].as_str(),
+                        Instruction::Right => options[1].as_str(),
+                    };
+
+                    if next_node.ends_with("Z") {
+                        Some(index + 1)
+                    } else {
+                        current_node = next_node;
+                        None
+                    }
+                })
+                .expect("Should find cycle")
+        })
+        .collect_vec();
+
+    lcm(&results)
+}
+
+fn lcm(nums: &[usize]) -> usize {
+    if nums.len() == 1 {
+        return nums[0];
     }
+
+    let a = nums[0];
+    let b = lcm(&nums[1..]);
+    a * b / gcd(a, b)
+}
+
+fn gcd(a: usize, b: usize) -> usize {
+    if b == 0 {
+        return a;
+    }
+    gcd(b, a % b)
 }
 
 #[cfg(test)]
@@ -121,7 +156,6 @@ XXX = (XXX, XXX)";
         )
     }
 
-
     #[test]
     fn solve_example_part1() {
         assert_eq!(solve_part1(&parse_input(EXAMPLE_INPUT)), 6)
@@ -130,5 +164,12 @@ XXX = (XXX, XXX)";
     #[test]
     fn solve_example_part2() {
         assert_eq!(solve_part2(&parse_input(EXAMPLE_INPUT_2)), 6)
+    }
+
+    #[test]
+    fn test_vec_lcm() {
+        assert_eq!(lcm(&vec![4, 6]), 12);
+
+        assert_eq!(lcm(&vec![4, 6, 5]), 60);
     }
 }
