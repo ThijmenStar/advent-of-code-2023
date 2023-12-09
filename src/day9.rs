@@ -1,6 +1,5 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 
-
 #[aoc_generator(day9)]
 pub fn parse_input(input: &str) -> Vec<Vec<i32>> {
     input
@@ -13,34 +12,45 @@ pub fn parse_input(input: &str) -> Vec<Vec<i32>> {
         .collect()
 }
 
-
-
 #[aoc(day9, part1)]
-pub fn solve_part1(input: &Vec<Vec<i32>>) -> i32 {
-
+pub fn solve_part1(input: &[Vec<i32>]) -> i32 {
     input
         .iter()
-        .map(|numbers| extrapolate(numbers))
+        .map(|numbers| extrapolate_forwards(numbers))
         .sum()
-
 }
 
+#[aoc(day9, part2)]
+pub fn solve_part2(input: &[Vec<i32>]) -> i32 {
+    input
+        .iter()
+        .map(|numbers| extrapolate_backwards(numbers))
+        .sum()
+}
 
-fn extrapolate(numbers: &Vec<i32>) -> i32 {
+fn extrapolate_forwards(numbers: &Vec<i32>) -> i32 {
     if numbers.iter().all(|&n| n == 0) {
         0
     } else {
-        numbers.last().expect("Cannot extrapolate empty vec") + extrapolate(&differences(numbers))
+        numbers.last().expect("Cannot extrapolate empty vec")
+            + extrapolate_forwards(&differences(numbers))
+    }
+}
+
+fn extrapolate_backwards(numbers: &Vec<i32>) -> i32 {
+    if numbers.iter().all(|&n| n == 0) {
+        0
+    } else {
+        numbers.first().expect("Cannot extrapolate empty vec")
+            - extrapolate_backwards(&differences(numbers))
     }
 }
 
 fn differences(numbers: &Vec<i32>) -> Vec<i32> {
-    numbers.
-        iter()
-        .zip(
-            numbers.iter().skip(1)
-        )
-        .map(|(a, b)| b-a)
+    numbers
+        .iter()
+        .zip(numbers.iter().skip(1))
+        .map(|(a, b)| b - a)
         .collect()
 }
 
@@ -66,12 +76,24 @@ mod tests {
 
     #[test]
     fn test_vec_differences() {
-        assert_eq!(differences(&parse_input(EXAMPLE_INPUT)[0]), vec![3, 3, 3, 3, 3])
+        assert_eq!(
+            differences(&parse_input(EXAMPLE_INPUT)[0]),
+            vec![3, 3, 3, 3, 3]
+        )
     }
-
 
     #[test]
     fn test_extrapolate() {
-        assert_eq!(extrapolate(&vec![0, 0, 0]), 0)
+        assert_eq!(extrapolate_forwards(&vec![0, 0, 0]), 0)
+    }
+
+    #[test]
+    fn solve_example_part1() {
+        assert_eq!(solve_part1(&parse_input(EXAMPLE_INPUT)), 114)
+    }
+
+    #[test]
+    fn solve_example_part2() {
+        assert_eq!(solve_part2(&parse_input(EXAMPLE_INPUT)), 2)
     }
 }
