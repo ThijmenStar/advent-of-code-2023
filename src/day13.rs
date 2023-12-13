@@ -82,6 +82,37 @@ pub fn solve_part1(patterns: &[Pattern]) -> usize {
     100 * vertical_sum + horizontal_sum
 }
 
+#[aoc(day13, part2)]
+pub fn solve_part2(patterns: &[Pattern]) -> usize {
+    let vertical_sum: usize = patterns
+        .iter()
+        .map(|pattern| {
+            splits(pattern)
+                .into_iter()
+                .map(|(a, b)| match is_mirrored_smudge(a, b) {
+                    true => a.len(),
+                    false => 0,
+                })
+                .sum::<usize>()
+        })
+        .sum();
+
+    let horizontal_sum: usize = patterns
+        .iter()
+        .map(|pattern| {
+            splits(&transpose(pattern))
+                .into_iter()
+                .map(|(a, b)| match is_mirrored_smudge(a, b) {
+                    true => a.len(),
+                    false => 0,
+                })
+                .sum::<usize>()
+        })
+        .sum();
+
+    100 * vertical_sum + horizontal_sum
+}
+
 fn transpose<T>(v: &[Vec<T>]) -> Vec<Vec<T>>
 where
     T: Clone,
@@ -105,6 +136,15 @@ fn is_mirrored(a: &[Vec<Tile>], b: &[Vec<Tile>]) -> bool {
     a.iter().rev().zip(b).all(|(row_a, row_b)| row_a == row_b)
 }
 
+fn is_mirrored_smudge(a: &[Vec<Tile>], b: &[Vec<Tile>]) -> bool {
+    match a.iter().rev().zip(b).map(|(row_a, row_b)|
+        row_a.iter().zip(row_b).filter(|(i, j)| i != j).count()
+    ).sum() {
+        1 => true,
+        _ => false,
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -126,11 +166,6 @@ mod tests {
 #####.##.
 ..##..###
 #....#..#";
-
-    #[test]
-    fn parse_example() {
-        println!("{:?}", parse_input(EXAMPLE_INPUT)[0]);
-    }
 
     #[test]
     fn test_is_mirrored() {
@@ -203,5 +238,10 @@ mod tests {
     #[test]
     fn solve_example_part1() {
         assert_eq!(solve_part1(&parse_input(EXAMPLE_INPUT)), 405)
+    }
+
+    #[test]
+    fn solve_example_part2() {
+        assert_eq!(solve_part2(&parse_input(EXAMPLE_INPUT)), 400)
     }
 }
