@@ -83,34 +83,62 @@ fn parse_input(input: &str) -> Contraption {
 
 #[aoc(day16, part1)]
 fn solve_part1(input: &Contraption) -> usize {
+    shoot_and_count(input, Right, 0)
+}
+
+#[aoc(day16, part2)]
+fn solve_part2(input: &Contraption) -> usize {
+    [Up, Down, Left, Right]
+        .into_iter()
+        .flat_map(|initial_direction| {
+            assert_eq!(input.rows, input.cols);
+            (0..input.cols)
+                .map(|offset| shoot_and_count(input, initial_direction, offset))
+                .max()
+        })
+        .max()
+        .unwrap()
+}
+
+fn shoot_and_count(input: &Contraption, initial_direction: Direction, offset: usize) -> usize {
     let mut energized: HashSet<IVec2> = HashSet::new();
     let mut reflections: HashSet<(IVec2, Direction)> = HashSet::new();
 
-    let first_mirror = input.mirrors.first().unwrap();
-    energized.extend(ivec2_range(&IVec2::ZERO, &first_mirror.pos));
+    let first_mirror = match initial_direction {
+        Up | Down => input
+            .mirrors
+            .iter()
+            .find_position(|m| m.pos.x == offset as i32),
+        Left | Right => input
+            .mirrors
+            .iter()
+            .find_position(|m| m.pos.y == offset as i32),
+    };
 
-    reflect_in(input, &mut reflections, &mut energized, 0, Right);
+    let initial_position = match initial_direction {
+        Up => IVec2::new(offset as i32, input.rows as i32 - 1),
+        Down => IVec2::new(offset as i32, 0),
+        Left => IVec2::new(input.cols as i32 - 1, offset as i32),
+        Right => IVec2::new(0, offset as i32),
+    };
 
-    print_energized(&energized, input.rows, input.cols);
+    match first_mirror {
+        Some((index, mirror)) => {
+            energized.extend(ivec2_range(&initial_position, &mirror.pos));
 
-    energized.len()
+            reflect_in(
+                input,
+                &mut reflections,
+                &mut energized,
+                index,
+                initial_direction,
+            );
+
+            energized.len()
+        }
+        None => input.rows, // beam does not hit any mirrors
+    }
 }
-
-fn print_energized(energized: &HashSet<IVec2>, rows: usize, cols: usize) {
-    let mut tiles = vec![vec!['.'; cols]; rows];
-
-    energized
-        .iter()
-        .for_each(|t| tiles[t.y as usize][t.x as usize] = '#');
-
-    let output: String = tiles
-        .iter()
-        .map(|line| line.iter().collect::<String>())
-        .join("\n");
-
-    println!("{}", output)
-}
-
 fn reflect_in(
     contraption: &Contraption,
     reflections: &mut HashSet<(IVec2, Direction)>,
@@ -257,6 +285,11 @@ mod tests {
     }
 
     #[test]
+    fn solve_example_part2() {
+        assert_eq!(solve_part2(&parse_input(EXAMPLE_INPUT)), 51);
+    }
+
+    #[test]
     fn test_ivec2_range() {
         assert_eq!(
             ivec2_range(&IVec2::ZERO, &IVec2::new(4, 0)),
@@ -265,6 +298,7 @@ mod tests {
                 IVec2::new(1, 0),
                 IVec2::new(2, 0),
                 IVec2::new(3, 0),
+                IVec2::new(4, 0),
             ]
         )
     }
