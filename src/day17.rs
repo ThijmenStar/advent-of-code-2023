@@ -3,8 +3,6 @@ use glam::IVec2;
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap};
 
-const MAX_STRAIGHT: u8 = 3;
-
 #[derive(Debug)]
 struct Map {
     nodes: HashMap<IVec2, usize>,
@@ -52,8 +50,13 @@ struct Heading {
 }
 
 impl Heading {
-    fn next_headings(&self) -> Vec<Heading> {
-        if self.straight_for < MAX_STRAIGHT {
+    fn next_headings(&self, min_straight: u8, max_straight: u8) -> Vec<Heading> {
+        if self.straight_for < min_straight {
+            vec![Heading {
+                direction: self.direction.straight(),
+                straight_for: self.straight_for + 1,
+            }]
+        } else if self.straight_for < max_straight {
             vec![
                 Heading {
                     direction: self.direction.left(),
@@ -134,6 +137,21 @@ fn parse_input(input: &str) -> Map {
 
 #[aoc(day17, part1)]
 fn solve_part1(input: &Map) -> usize {
+    const MIN_STRAIGHT: u8 = 0;
+    const MAX_STRAIGHT: u8 = 3;
+
+    return solve(input, MIN_STRAIGHT, MAX_STRAIGHT).expect("path should exist");
+}
+
+#[aoc(day17, part2)]
+fn solve_part2(input: &Map) -> usize {
+    const MIN_STRAIGHT: u8 = 4;
+    const MAX_STRAIGHT: u8 = 10;
+
+    return solve(input, MIN_STRAIGHT, MAX_STRAIGHT).expect("path should exist");
+}
+
+fn solve(input: &Map, min_straight: u8, max_straight: u8) -> Option<usize> {
     let mut dist: HashMap<(IVec2, Heading), usize> = HashMap::new();
     let mut heap = BinaryHeap::new();
 
@@ -147,6 +165,14 @@ fn solve_part1(input: &Map) -> usize {
             straight_for: 0,
         },
     });
+    heap.push(State {
+        cost: 0,
+        position: IVec2::ZERO,
+        heading: Heading {
+            direction: Direction::South,
+            straight_for: 0,
+        },
+    });
 
     while let Some(State {
         cost,
@@ -155,15 +181,15 @@ fn solve_part1(input: &Map) -> usize {
     }) = heap.pop()
     {
         // Shortest path found
-        if position == goal {
-            return cost;
+        if position == goal && heading.straight_for >= min_straight {
+            return Some(cost);
         }
 
         if &cost > dist.get(&(position, heading)).unwrap_or(&usize::MAX) {
             continue; // We already found a better way
         }
 
-        for next_heading in heading.next_headings() {
+        for next_heading in heading.next_headings(min_straight, max_straight) {
             let next_position = next_heading.next_position(position);
             if next_position.cmplt(IVec2::ZERO).any() || next_position.cmpgt(goal).any() {
                 continue; // Don't explore off grid
@@ -187,14 +213,13 @@ fn solve_part1(input: &Map) -> usize {
             }
         }
     }
-
-    panic!("Path not found")
+    None
 }
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
+    use itertools::Itertools;
 
     const EXAMPLE_INPUT: &str = "2413432311323
 3215453535623
@@ -210,8 +235,68 @@ mod tests {
 2546548887735
 4322674655533";
 
+    const ANOTHER_EXAMPLE: &str = "111111111111
+999999999991
+999999999991
+999999999991
+999999999991";
+
     #[test]
     fn test_solve_example_part1() {
         assert_eq!(solve_part1(&parse_input(EXAMPLE_INPUT)), 102);
+    }
+
+    #[test]
+    fn test_solve_example_part2() {
+        assert_eq!(solve_part2(&parse_input(EXAMPLE_INPUT)), 94);
+    }
+    #[test]
+    fn test_solve_another_example_part2() {
+        assert_eq!(solve_part2(&parse_input(ANOTHER_EXAMPLE)), 71);
+    }
+
+    #[test]
+    fn test_boundaries_horizontal() {
+        assert_eq!(solve(&parse_input("1111"), 4, 10), None);
+        assert_eq!(solve(&parse_input("11111"), 4, 10), Some(4));
+        assert_eq!(solve(&parse_input("1111111111"), 4, 10), Some(9));
+        assert_eq!(solve(&parse_input("11111111111"), 4, 10), Some(10));
+        assert_eq!(solve(&parse_input("111111111111"), 4, 10), None);
+    }
+
+    #[test]
+    fn test_boundaries_vertical() {
+        assert_eq!(
+            solve(&parse_input("1111".chars().join("\n").as_str()), 4, 10),
+            None
+        );
+        assert_eq!(
+            solve(&parse_input("11111".chars().join("\n").as_str()), 4, 10),
+            Some(4)
+        );
+        assert_eq!(
+            solve(
+                &parse_input("1111111111".chars().join("\n").as_str()),
+                4,
+                10
+            ),
+            Some(9)
+        );
+        assert_eq!(
+            solve(
+                &parse_input("11111111111".chars().join("\n").as_str()),
+                4,
+                10
+            ),
+            Some(10)
+        );
+        assert_eq!(
+            solve(
+                &parse_input("111111111111".chars().join("\n").as_str()),
+                4,
+                10
+            ),
+            None
+        );
     }
 }
