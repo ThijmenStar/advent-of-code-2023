@@ -55,7 +55,7 @@ enum CardsType {
 }
 
 #[derive(Eq, PartialEq, Debug, Clone)]
-pub struct Hand {
+struct Hand {
     cards: Vec<Card>,
     bid: usize,
 }
@@ -95,7 +95,7 @@ impl TryFrom<&str> for Hand {
 
 
 #[aoc_generator(day7, part1)]
-pub fn parse_input_part1(input: &str) -> Vec<Hand> {
+fn parse_input_part1(input: &str) -> Vec<Hand> {
     input
         .lines()
         .map(|line| Hand::try_from(line).expect("A valid hand"))
@@ -103,7 +103,7 @@ pub fn parse_input_part1(input: &str) -> Vec<Hand> {
 }
 
 #[aoc_generator(day7, part2)]
-pub fn parse_input_part2(input: &str) -> Vec<Hand> {
+fn parse_input_part2(input: &str) -> Vec<Hand> {
     input
         .lines()
         .map(|line| Hand::try_from(line.replace('J', "*").as_str()).expect("A valid hand"))
@@ -111,12 +111,12 @@ pub fn parse_input_part2(input: &str) -> Vec<Hand> {
 }
 
 #[aoc(day7, part1)]
-pub fn solve_part1(input: &[Hand]) -> usize {
+fn solve_part1(input: &[Hand]) -> usize {
     solve(input)
 }
 
 #[aoc(day7, part2)]
-pub fn solve_part2(input: &[Hand]) -> usize {
+fn solve_part2(input: &[Hand]) -> usize {
     solve(input)
 }
 

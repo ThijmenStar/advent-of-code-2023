@@ -8,19 +8,19 @@ use std::hash::Hash;
 const CYCLES: usize = 1_000_000_000;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
-pub enum RockType {
+enum RockType {
     Cube,
     Round,
 }
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
-pub struct Tile {
+struct Tile {
     loc: IVec2,
     rock_type: RockType,
 }
 
 #[derive(Clone, Eq, PartialEq)]
-pub struct Input {
+struct Input {
     rocks: Vec<Tile>,
     rows: usize,
     cols: usize,
@@ -47,7 +47,7 @@ impl Debug for Input {
 }
 
 #[aoc_generator(day14)]
-pub fn parse_input(input: &str) -> Input {
+fn parse_input(input: &str) -> Input {
     Input {
         rocks: input
             .lines()
@@ -73,7 +73,7 @@ pub fn parse_input(input: &str) -> Input {
 }
 
 #[aoc(day14, part1)]
-pub fn solve_part1(input: &Input) -> usize {
+fn solve_part1(input: &Input) -> usize {
     let mut rocks = Vec::from(input.rocks.as_slice());
     slide_rocks_north(&mut rocks);
 
@@ -85,7 +85,7 @@ pub fn solve_part1(input: &Input) -> usize {
 }
 
 #[aoc(day14, part2)]
-pub fn solve_part2(input: &Input) -> usize {
+fn solve_part2(input: &Input) -> usize {
     let mut rocks = Vec::from(input.rocks.as_slice());
     slide_rocks_north(&mut rocks);
 

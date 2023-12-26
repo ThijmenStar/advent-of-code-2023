@@ -1,7 +1,7 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 
 #[aoc_generator(day9)]
-pub fn parse_input(input: &str) -> Vec<Vec<i32>> {
+fn parse_input(input: &str) -> Vec<Vec<i32>> {
     input
         .lines()
         .map(|line| {
@@ -13,7 +13,7 @@ pub fn parse_input(input: &str) -> Vec<Vec<i32>> {
 }
 
 #[aoc(day9, part1)]
-pub fn solve_part1(input: &[Vec<i32>]) -> i32 {
+fn solve_part1(input: &[Vec<i32>]) -> i32 {
     input
         .iter()
         .map(|numbers| extrapolate_forwards(numbers))
@@ -21,7 +21,7 @@ pub fn solve_part1(input: &[Vec<i32>]) -> i32 {
 }
 
 #[aoc(day9, part2)]
-pub fn solve_part2(input: &[Vec<i32>]) -> i32 {
+fn solve_part2(input: &[Vec<i32>]) -> i32 {
     input
         .iter()
         .map(|numbers| extrapolate_backwards(numbers))

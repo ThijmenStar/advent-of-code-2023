@@ -1,17 +1,17 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 
 #[aoc_generator(day15)]
-pub fn parse_input(input: &str) -> Vec<String> {
+fn parse_input(input: &str) -> Vec<String> {
     input.split(',').map(|s| String::from(s)).collect()
 }
 
 #[aoc(day15, part1)]
-pub fn solve_part1(input: &[String]) -> usize {
+fn solve_part1(input: &[String]) -> usize {
     input.iter().map(|s| hash(s)).sum()
 }
 
 #[aoc(day15, part2)]
-pub fn solve_part2(input: &[String]) -> usize {
+fn solve_part2(input: &[String]) -> usize {
     let mut boxes: Vec<Vec<(&str, u8)>> = vec![vec![]; 256];
 
     input.iter().for_each(|s| match s.chars().last() {

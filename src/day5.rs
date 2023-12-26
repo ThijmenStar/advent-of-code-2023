@@ -4,7 +4,7 @@ use regex::Regex;
 type Mapping = (i64, i64, i64);
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Almanac {
+struct Almanac {
     seeds: Vec<i64>,
 
     seeds_to_soil: Vec<Mapping>,
@@ -17,7 +17,7 @@ pub struct Almanac {
 }
 
 #[aoc_generator(day5)]
-pub fn parse_input(input: &str) -> Almanac {
+fn parse_input(input: &str) -> Almanac {
     let re_seeds = Regex::new(r"seeds:\s(?<seeds>(?:\d+\s*)*)").unwrap();
     let re_mappings = Regex::new(r"(?:\w|-)* map:\n(?<mappings>(?:\d+ \d+ \d+\s?)*)").unwrap();
 
@@ -59,7 +59,7 @@ pub fn parse_input(input: &str) -> Almanac {
 }
 
 #[aoc(day5, part1)]
-pub fn solve_part1(input: &Almanac) -> i64 {
+fn solve_part1(input: &Almanac) -> i64 {
     let maps = &[
         &input.seeds_to_soil,
         &input.soil_to_fertilizer,
@@ -80,7 +80,7 @@ pub fn solve_part1(input: &Almanac) -> i64 {
 }
 
 #[aoc(day5, part2)]
-pub fn solve_part2(input: &Almanac) -> i64 {
+fn solve_part2(input: &Almanac) -> i64 {
     let maps = &[
         &input.seeds_to_soil,
         &input.soil_to_fertilizer,

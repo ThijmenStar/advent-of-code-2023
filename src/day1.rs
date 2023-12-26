@@ -3,7 +3,7 @@ use aoc_runner_derive::aoc;
 use regex::Regex;
 
 #[aoc(day1, part1)]
-pub fn solve_part1(input: &str) -> u32 {
+fn solve_part1(input: &str) -> u32 {
     let mut answer = 0;
 
     let digit_hashmap = HashMap::from([
@@ -32,7 +32,7 @@ pub fn solve_part1(input: &str) -> u32 {
     return answer;
 }
 #[aoc(day1, part2)]
-pub fn solve_part2(input: &str) -> u32 {
+fn solve_part2(input: &str) -> u32 {
     let mut answer = 0;
 
     let digit_hashmap = HashMap::from([

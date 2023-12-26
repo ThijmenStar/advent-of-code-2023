@@ -3,20 +3,20 @@ use aoc_runner_derive::{aoc, aoc_generator};
 use itertools::Itertools;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
-pub enum Condition {
+enum Condition {
     Operational,
     Damaged,
     Unknown,
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct Record {
+struct Record {
     conditions: Vec<Condition>,
     damaged_springs: Vec<usize>,
 }
 
 #[aoc_generator(day12)]
-pub fn parse_input(input: &str) -> Vec<Record> {
+fn parse_input(input: &str) -> Vec<Record> {
     input
         .lines()
         .map(|line| {
@@ -42,7 +42,7 @@ pub fn parse_input(input: &str) -> Vec<Record> {
 }
 
 #[aoc(day12, part1)]
-pub fn solve_part1(report: &[Record]) -> usize {
+fn solve_part1(report: &[Record]) -> usize {
     report
         .iter()
         .map(|record| {
@@ -64,7 +64,7 @@ pub fn solve_part1(report: &[Record]) -> usize {
 }
 
 #[aoc(day12, part2)]
-pub fn solve_part2(report: &[Record]) -> usize {
+fn solve_part2(report: &[Record]) -> usize {
     report
         .iter()
         .map(|record| {

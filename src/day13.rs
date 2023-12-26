@@ -4,7 +4,7 @@ use std::fmt::{Debug, Formatter};
 type Pattern = Vec<Vec<Tile>>;
 
 #[derive(Eq, PartialEq, Clone)]
-pub enum Tile {
+enum Tile {
     Ash,
     Rocks,
 }
@@ -35,7 +35,7 @@ impl TryFrom<char> for Tile {
 }
 
 #[aoc_generator(day13)]
-pub fn parse_input(input: &str) -> Vec<Pattern> {
+fn parse_input(input: &str) -> Vec<Pattern> {
     input
         .split("\n\n")
         .map(|pattern| {
@@ -52,7 +52,7 @@ pub fn parse_input(input: &str) -> Vec<Pattern> {
 }
 
 #[aoc(day13, part1)]
-pub fn solve_part1(patterns: &[Pattern]) -> usize {
+fn solve_part1(patterns: &[Pattern]) -> usize {
     let vertical_sum: usize = patterns
         .iter()
         .map(|pattern| {
@@ -83,7 +83,7 @@ pub fn solve_part1(patterns: &[Pattern]) -> usize {
 }
 
 #[aoc(day13, part2)]
-pub fn solve_part2(patterns: &[Pattern]) -> usize {
+fn solve_part2(patterns: &[Pattern]) -> usize {
     let vertical_sum: usize = patterns
         .iter()
         .map(|pattern| {

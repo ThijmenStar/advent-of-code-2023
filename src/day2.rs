@@ -2,7 +2,7 @@ use std::cmp;
 use aoc_runner_derive::{aoc, aoc_generator};
 
 #[derive(PartialEq, Debug)]
-pub struct Game {
+struct Game {
     id: u32,
     subsets: Vec<Vec<CubeCount>>,
 }
@@ -15,10 +15,10 @@ enum Color {
 }
 
 #[derive(PartialEq, Debug)]
-pub struct CubeCount(Color, u32);
+struct CubeCount(Color, u32);
 
 #[aoc_generator(day2)]
-pub fn parse_input(input: &str) -> Vec<Game> {
+fn parse_input(input: &str) -> Vec<Game> {
     input
         .lines()
         .map(|l| {
@@ -62,7 +62,7 @@ const GREEN_CUBES: u32 = 13;
 const BLUE_CUBES: u32 = 14;
 
 #[aoc(day2, part1)]
-pub fn solve_part1(input: &[Game]) -> u32 {
+fn solve_part1(input: &[Game]) -> u32 {
     input
         .iter()
         .filter(|game| {
@@ -77,7 +77,7 @@ pub fn solve_part1(input: &[Game]) -> u32 {
 }
 
 #[aoc(day2, part2)]
-pub fn solve_part2(input: &[Game]) -> u32 {
+fn solve_part2(input: &[Game]) -> u32 {
     input.iter()
         .map(|game| {
             game.subsets.iter().flatten().fold([0, 0, 0], |mut max, cube_count| {

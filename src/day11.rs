@@ -5,7 +5,7 @@ use itertools::Itertools;
 const EXPANSION_FACTOR: i32 = 1_000_000;
 
 #[aoc_generator(day11)]
-pub fn parse_input(input: &str) -> Vec<IVec2> {
+fn parse_input(input: &str) -> Vec<IVec2> {
     input
         .lines()
         .enumerate()
@@ -19,13 +19,13 @@ pub fn parse_input(input: &str) -> Vec<IVec2> {
 }
 
 #[aoc(day11, part1)]
-pub fn solve_part1(universe: &[IVec2]) -> u64 {
+fn solve_part1(universe: &[IVec2]) -> u64 {
     solve_for_factor(universe, 2)
 }
 
 
 #[aoc(day11, part2)]
-pub fn solve_part2(universe: &[IVec2]) -> u64 {
+fn solve_part2(universe: &[IVec2]) -> u64 {
     solve_for_factor(universe, EXPANSION_FACTOR)
 }
 

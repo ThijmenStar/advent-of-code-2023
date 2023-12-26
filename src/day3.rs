@@ -5,7 +5,7 @@ type Coordinate = (usize, usize);
 type Engine = Vec<Vec<char>>;
 
 #[aoc_generator(day3)]
-pub fn parse_input(input: &str) -> Engine {
+fn parse_input(input: &str) -> Engine {
     input.lines().map(|x| x.chars().collect()).collect()
 }
 
@@ -44,7 +44,7 @@ fn get_gear_coordinates(engine: &Engine) -> Vec<Coordinate> {
 }
 
 #[aoc(day3, part1)]
-pub fn solve_part1(engine: &Engine) -> u32 {
+fn solve_part1(engine: &Engine) -> u32 {
     let symbols = get_symbol_coordinates(engine);
 
     let mut solution = 0;
@@ -80,7 +80,7 @@ pub fn solve_part1(engine: &Engine) -> u32 {
 }
 
 #[aoc(day3, part2)]
-pub fn solve_part2(engine: &Engine) -> u32 {
+fn solve_part2(engine: &Engine) -> u32 {
     let gears = get_gear_coordinates(engine);
     let mut gears_numbers: Vec<Vec<u32>> = vec![vec![]; gears.len()];
 

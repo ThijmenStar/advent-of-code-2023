@@ -4,13 +4,13 @@ use std::collections::HashMap;
 use std::ops::ControlFlow;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
-pub enum Instruction {
+enum Instruction {
     Left = 0,
     Right = 1,
 }
 
 #[aoc_generator(day8)]
-pub fn parse_input(input: &str) -> (Vec<Instruction>, HashMap<String, [String; 2]>) {
+fn parse_input(input: &str) -> (Vec<Instruction>, HashMap<String, [String; 2]>) {
     let (instructions, map) = input
         .split_once("\n\n")
         .expect("Failed to split instructions and map");
@@ -34,7 +34,7 @@ pub fn parse_input(input: &str) -> (Vec<Instruction>, HashMap<String, [String; 2
 }
 
 #[aoc(day8, part1)]
-pub fn solve_part1(input: &(Vec<Instruction>, HashMap<String, [String; 2]>)) -> u32 {
+fn solve_part1(input: &(Vec<Instruction>, HashMap<String, [String; 2]>)) -> u32 {
     let (instructions, map) = input;
 
     const STARTING_NODE: &str = "AAA";
@@ -62,7 +62,7 @@ pub fn solve_part1(input: &(Vec<Instruction>, HashMap<String, [String; 2]>)) -> 
 }
 
 #[aoc(day8, part2)]
-pub fn solve_part2(input: &(Vec<Instruction>, HashMap<String, [String; 2]>)) -> usize {
+fn solve_part2(input: &(Vec<Instruction>, HashMap<String, [String; 2]>)) -> usize {
     let (instructions, map) = input;
 
     let starting_nodes = map

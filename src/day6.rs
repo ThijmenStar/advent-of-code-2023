@@ -4,7 +4,7 @@ use itertools::Itertools;
 type Race = (u64, u64);
 
 #[aoc_generator(day6, part1)]
-pub fn parse_input_part1(input: &str) -> Vec<Race> {
+fn parse_input_part1(input: &str) -> Vec<Race> {
 
     let lines: Vec<&str> = input.lines().collect();
     let times: Vec<u64> = lines[0].split_whitespace().skip(1).map(|i| i.parse().unwrap()).collect();
@@ -14,7 +14,7 @@ pub fn parse_input_part1(input: &str) -> Vec<Race> {
 }
 
 #[aoc_generator(day6, part2)]
-pub fn parse_input_part2(input: &str) -> Race {
+fn parse_input_part2(input: &str) -> Race {
 
     let lines: Vec<&str> = input.lines().collect();
     let time: u64 = lines[0].split_whitespace().skip(1).join("").parse().unwrap();
@@ -24,7 +24,7 @@ pub fn parse_input_part2(input: &str) -> Race {
 }
 
 #[aoc(day6, part1)]
-pub fn solve_part1(input: &[Race]) -> u64 {
+fn solve_part1(input: &[Race]) -> u64 {
     input.iter().map(|&(time, distance)| {
         ways_to_beat_race(time, distance)
 
@@ -39,7 +39,7 @@ fn ways_to_beat_race(time: u64, distance: u64) -> u64 {
 }
 
 #[aoc(day6, part2)]
-pub fn solve_part2(input: &Race) -> u64 {
+fn solve_part2(input: &Race) -> u64 {
     let (time, distance) = *input;
 
     ways_to_beat_race(time, distance)

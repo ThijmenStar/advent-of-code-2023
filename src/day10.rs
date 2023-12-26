@@ -2,7 +2,7 @@ use aoc_runner_derive::{aoc, aoc_generator};
 use std::collections::HashSet;
 
 #[derive(Debug, PartialEq)]
-pub enum Tile {
+enum Tile {
     Start,
     // S
     Ground,
@@ -56,7 +56,7 @@ impl Tile {
 }
 
 #[aoc_generator(day10)]
-pub fn parse_input(input: &str) -> Vec<Vec<Tile>> {
+fn parse_input(input: &str) -> Vec<Vec<Tile>> {
     input
         .lines()
         .map(|line| {
@@ -68,7 +68,7 @@ pub fn parse_input(input: &str) -> Vec<Vec<Tile>> {
 }
 
 #[aoc(day10, part1)]
-pub fn solve_part1(grid: &Vec<Vec<Tile>>) -> u32 {
+fn solve_part1(grid: &Vec<Vec<Tile>>) -> u32 {
     let start_tile = grid
         .iter()
         .enumerate()

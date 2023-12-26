@@ -2,14 +2,14 @@ use aoc_runner_derive::{aoc, aoc_generator};
 use std::collections::HashSet;
 
 #[derive(PartialEq, Debug)]
-pub struct Card {
+struct Card {
     id: u32,
     winning_numbers: Vec<u32>,
     numbers_you_have: Vec<u32>,
 }
 
 #[aoc_generator(day4)]
-pub fn parse_input(input: &str) -> Vec<Card> {
+fn parse_input(input: &str) -> Vec<Card> {
     input
         .lines()
         .map(|line| {
@@ -44,7 +44,7 @@ fn calculate_points(matches: u32) -> u32 {
 }
 
 #[aoc(day4, part1)]
-pub fn solve_part1(input: &[Card]) -> u32 {
+fn solve_part1(input: &[Card]) -> u32 {
     input
         .iter()
         .map(|card| {
@@ -56,7 +56,7 @@ pub fn solve_part1(input: &[Card]) -> u32 {
 }
 
 #[aoc(day4, part2)]
-pub fn solve_part2(input: &[Card]) -> usize {
+fn solve_part2(input: &[Card]) -> usize {
     let matching_numbers: Vec<usize> = input
         .iter()
         .map(|card| {
