@@ -1,5 +1,5 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use glam::IVec2;
+use glam::I64Vec2;
 use itertools::Itertools;
 use nom::branch::alt;
 use nom::bytes::complete::{tag, take_while_m_n};
@@ -10,135 +10,123 @@ use nom::multi::separated_list1;
 use nom::sequence::{delimited, tuple};
 use nom::IResult;
 use nom::Parser;
-use std::collections::{HashSet, VecDeque};
-
-#[derive(Debug, PartialEq)]
-struct Color {
-    pub red: u8,
-    pub green: u8,
-    pub blue: u8,
-}
 
 #[derive(Debug, PartialEq)]
 struct Instruction {
-    direction: IVec2,
-    length: i32,
-    color: Color,
+    direction: I64Vec2,
+    distance: i64,
 }
 
-fn from_hex(input: &str) -> Result<u8, std::num::ParseIntError> {
-    u8::from_str_radix(input, 16)
+fn from_hex(input: &str) -> Result<u32, std::num::ParseIntError> {
+    u32::from_str_radix(input, 16)
 }
 
 fn is_hex_digit(c: char) -> bool {
     c.is_digit(16)
 }
 
-fn hex_primary(input: &str) -> IResult<&str, u8> {
-    map_res(take_while_m_n(2, 2, is_hex_digit), from_hex)(input)
+fn hex_distance(input: &str) -> IResult<&str, u32> {
+    map_res(take_while_m_n(5, 5, is_hex_digit), from_hex)(input)
 }
 
-fn hex_color(input: &str) -> IResult<&str, Color> {
+fn hex_direction(input: &str) -> IResult<&str, I64Vec2> {
+    Ok(alt((
+        complete::char('0').map(|_| I64Vec2::X),
+        complete::char('1').map(|_| I64Vec2::Y),
+        complete::char('2').map(|_| I64Vec2::NEG_X),
+        complete::char('3').map(|_| I64Vec2::NEG_Y),
+    ))(input)?)
+}
+
+fn hex_instruction(input: &str) -> IResult<&str, Instruction> {
     let (input, _) = tag("#")(input)?;
-    let (input, (red, green, blue)) = tuple((hex_primary, hex_primary, hex_primary))(input)?;
-
-    Ok((input, Color { red, green, blue }))
-}
-
-fn instruction(input: &str) -> IResult<&str, Instruction> {
-    let (input, direction) = alt((
-        complete::char('U').map(|_| IVec2::NEG_Y),
-        complete::char('D').map(|_| IVec2::Y),
-        complete::char('L').map(|_| IVec2::NEG_X),
-        complete::char('R').map(|_| IVec2::X),
-    ))(input)?;
-    let (input, length) = delimited(space1, complete::i32, space1)(input)?;
-
-    let (input, color) = delimited(complete::char('('), hex_color, complete::char(')'))(input)?;
+    let (input, (distance, direction)) = tuple((hex_distance, hex_direction))(input)?;
 
     Ok((
         input,
         Instruction {
             direction,
-            length,
-            color,
+            distance: distance as i64,
         },
     ))
 }
 
-fn instructions(input: &str) -> IResult<&str, Vec<Instruction>> {
+fn instruction(input: &str) -> IResult<&str, (Instruction, Instruction)> {
+    let (input, direction) = alt((
+        complete::char('U').map(|_| I64Vec2::NEG_Y),
+        complete::char('D').map(|_| I64Vec2::Y),
+        complete::char('L').map(|_| I64Vec2::NEG_X),
+        complete::char('R').map(|_| I64Vec2::X),
+    ))(input)?;
+    let (input, distance) = delimited(space1, complete::i64, space1)(input)?;
+
+    let (input, instruction2) =
+        delimited(complete::char('('), hex_instruction, complete::char(')'))(input)?;
+
+    Ok((
+        input,
+        (
+            Instruction {
+                direction,
+                distance,
+            },
+            instruction2,
+        ),
+    ))
+}
+
+fn instructions(input: &str) -> IResult<&str, Vec<(Instruction, Instruction)>> {
     separated_list1(line_ending, instruction)(input)
 }
 
-#[aoc_generator(day18)]
-fn parse_input(input: &str) -> Vec<Instruction> {
-    instructions(input).unwrap().1
+#[aoc_generator(day18, part1)]
+fn parse_input_part1(input: &str) -> Vec<Instruction> {
+    instructions(input)
+        .unwrap()
+        .1
+        .into_iter()
+        .map(|ins| ins.0)
+        .collect()
+}
+
+#[aoc_generator(day18, part2)]
+fn parse_input_part2(input: &str) -> Vec<Instruction> {
+    instructions(input)
+        .unwrap()
+        .1
+        .into_iter()
+        .map(|ins| ins.1)
+        .collect()
 }
 
 #[aoc(day18, part1)]
-fn solve_part1(input: &Vec<Instruction>) -> i32 {
-    let mut min_pos = IVec2::MAX;
-    let mut max_pos = IVec2::MIN;
+fn solve_part1(input: &Vec<Instruction>) -> i64 {
+    solve(input)
+}
 
-    // Dig trenches
-    let (_, trenches) = input.iter().fold(
-        (IVec2::ZERO, HashSet::from([IVec2::ZERO])),
-        |(mut position, mut dug_out), instruction| {
-            for _ in 0..instruction.length {
-                position += instruction.direction;
-                dug_out.insert(position);
-                min_pos = min_pos.min(position);
-                max_pos = max_pos.max(position);
-            }
-            (position, dug_out)
+#[aoc(day18, part2)]
+fn solve_part2(input: &Vec<Instruction>) -> i64 {
+    solve(input)
+}
+
+fn solve(input: &Vec<Instruction>) -> i64 {
+    let (_, trench_path, total_distance) = input.iter().fold(
+        (I64Vec2::ZERO, vec![I64Vec2::ZERO], 0),
+        |(position, mut path, distance), instruction| {
+            let new_pos = position + instruction.direction * instruction.distance;
+            path.push(new_pos);
+            (new_pos, path, distance + instruction.distance)
         },
     );
 
-    let mut outside: HashSet<IVec2> = HashSet::new();
-    let mut queue: VecDeque<IVec2> = VecDeque::new();
+    let area_polygon = trench_path
+        .iter()
+        .tuple_windows()
+        .map(|(a, b)| (a.x * b.y) - (b.x * a.y))
+        .sum::<i64>()
+        / 2; // shoelace formula
 
-    // Add outside edges
-    outside.extend(
-        (min_pos.x..max_pos.x + 1)
-            .map(|x| IVec2::new(x, min_pos.y))
-            .filter(|pos| !trenches.contains(pos)),
-    );
-    outside.extend(
-        (min_pos.x..max_pos.x + 1)
-            .map(|x| IVec2::new(x, max_pos.y))
-            .filter(|pos| !trenches.contains(pos)),
-    );
-    outside.extend(
-        (min_pos.y..max_pos.y + 1)
-            .map(|y| IVec2::new(min_pos.x, y))
-            .filter(|pos| !trenches.contains(pos)),
-    );
-    outside.extend(
-        (min_pos.y..max_pos.y + 1)
-            .map(|y| IVec2::new(max_pos.x, y))
-            .filter(|pos| !trenches.contains(pos)),
-    );
-
-    queue.extend(outside.clone());
-
-    while let Some(pos) = queue.pop_front() {
-        const DIRECTIONS: [IVec2; 4] = [IVec2::NEG_X, IVec2::X, IVec2::NEG_Y, IVec2::Y];
-
-        let new_pos = DIRECTIONS
-            .into_iter()
-            .map(|dir| pos + dir)
-            .filter(|pos| pos.cmpge(min_pos).all() && pos.cmple(max_pos).all()) // inside min max
-            .filter(|pos| !trenches.contains(pos) && !outside.contains(pos))
-            .collect_vec();
-
-        queue.extend(new_pos.clone());
-        outside.extend(new_pos);
-    }
-
-    let size = max_pos - min_pos;
-    dbg!(size);
-
-    (size.x + 1) * (size.y + 1) - outside.len() as i32
+    area_polygon + total_distance / 2 + 1 // picks theorem
 }
 
 #[cfg(test)]
@@ -161,41 +149,40 @@ L 2 (#015232)
 U 2 (#7a21e3)";
 
     #[test]
-    fn parse_color() {
+    fn parse_hex() {
         assert_eq!(
-            hex_color("#2F14DF"),
+            hex_instruction("#70c710"),
             Ok((
                 "",
-                Color {
-                    red: 47,
-                    green: 20,
-                    blue: 223,
+                Instruction {
+                    direction: I64Vec2::X,
+                    distance: 461937,
                 }
             ))
         );
     }
 
     #[test]
-    fn parse_example_input() {
-        let res = parse_input(EXAMPLE_INPUT);
+    fn parse_example_input_part1() {
+        let res = parse_input_part1(EXAMPLE_INPUT);
 
         assert_eq!(res.len(), 14);
         assert_eq!(
             res.first(),
             Some(&Instruction {
-                direction: IVec2::X,
-                length: 6,
-                color: Color {
-                    red: 112,
-                    green: 199,
-                    blue: 16,
-                },
+                direction: I64Vec2::X,
+                distance: 6,
             })
         )
     }
 
     #[test]
     fn solve_example_part1() {
-        assert_eq!(solve_part1(&parse_input(EXAMPLE_INPUT)), 62);
+        assert_eq!(solve_part1(&parse_input_part1(EXAMPLE_INPUT)), 62);
+    }
+
+    #[test]
+    fn solve_example_part2() {
+        assert_eq!(solve_part2(&parse_input_part2(EXAMPLE_INPUT)), 952408144115);
     }
 }
